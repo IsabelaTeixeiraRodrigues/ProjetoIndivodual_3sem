@@ -1,0 +1,470 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PokéLab</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="index.css">
+</head>
+
+<body>
+
+    <div class="pokedex">
+
+        <div class="pokedex-topo">
+            <h1 class="pokedex-titulo">PokéLab</h1>
+            <p class="pokedex-subtitulo">crie e treine seus próprios Pokémon</p>
+        </div>
+
+        <div class="aviso-erro" id="bannerError"></div>
+
+        <div class="pokedex-conteudo">
+
+            <section class="painel" id="painelCadastro">
+                <h2 class="painel-titulo">Capturar Pokémon</h2>
+
+                <form id="pokemonForm" novalidate>
+
+                    <div class="campo">
+                        <label for="nome">Nome do Pokémon</label>
+                        <input type="text" id="nome" name="nome" placeholder="Ex: Charizard" maxlength="20" required>
+                        <span class="erro" id="err-nome"></span>
+                    </div>
+
+                    <div class="campo-linha">
+                        <div class="campo">
+                            <label for="nivel">Nível</label>
+                            <input type="number" id="nivel" name="nivel" placeholder="1 a 100" min="1" max="100"
+                                required>
+                            <span class="erro" id="err-nivel"></span>
+                        </div>
+
+                        <div class="campo">
+                            <label for="dataCaptura">Data de captura</label>
+                            <input type="date" id="dataCaptura" name="dataCaptura" required>
+                            <span class="erro" id="err-data"></span>
+                        </div>
+                    </div>
+
+                    <div class="campo">
+                        <label for="tipo">Tipo</label>
+                        <select id="tipo" name="tipo" required>
+                            <option value="" disabled selected>Carregando tipos...</option>
+                        </select>
+                        <span class="erro" id="err-tipo"></span>
+                    </div>
+
+                    <div class="campo">
+                        <label>Ataques <small>(escolha de 1 a 4)</small></label>
+                        <div class="grade-caixas" id="ataquesGrid">
+                            <p class="texto-carregando">Carregando ataques...</p>
+                        </div>
+                        <span class="erro" id="err-ataques"></span>
+                    </div>
+
+                    <div class="campo">
+                        <label>É shiny?</label>
+                        <div class="linha-opcoes">
+                            <label class="opcao-radio">
+                                <input type="radio" name="shiny" value="sim">
+                                <span>Sim</span>
+                            </label>
+                            <label class="opcao-radio">
+                                <input type="radio" name="shiny" value="nao">
+                                <span>Não</span>
+                            </label>
+                        </div>
+                        <span class="erro" id="err-shiny"></span>
+                    </div>
+
+                    <button type="submit" class="botao-primario" id="submitBtn">Cadastrar Pokémon</button>
+                </form>
+            </section>
+
+            <section class="painel" id="painelTime">
+                <div class="time-cabecalho">
+                    <h2 class="painel-titulo">
+                        <span id="timeNomeTexto">Meu Time</span>
+                        <span class="time-contagem" id="teamCount">0</span>
+                    </h2>
+                    <button class="botao-editar-nome" id="editarTimeBtn">Editar nome</button>
+                </div>
+
+                <div class="time-editar" id="timeEditBox" style="display:none;">
+                    <input type="text" id="timeNomeInput" maxlength="30">
+                    <button class="botao-pequeno botao-primario-pequeno" id="salvarTimeBtn">Salvar</button>
+                    <button class="botao-pequeno botao-secundario-pequeno" id="cancelarTimeBtn">Cancelar</button>
+                    <span class="erro" id="err-timeNome"></span>
+                </div>
+
+                <p class="texto-carregando" id="teamLoading">Carregando seu time...</p>
+                <div id="teamEmpty" class="estado-vazio" style="display:none;">
+                    <p>Sua equipe está vazia.</p>
+                </div>
+                <div class="grade-time" id="teamGrid"></div>
+            </section>
+
+        </div>
+    </div>
+
+    <script>
+
+        function pad2(numero) {
+            if (numero < 10) {
+                return "0" + numero;
+            }
+            return "" + numero;
+        }
+
+        function formatarData(dataISO) {
+            var data = new Date(dataISO);
+            var dia = pad2(data.getUTCDate());
+            var mes = pad2(data.getUTCMonth() + 1);
+            var ano = data.getUTCFullYear();
+            var hora = pad2(data.getUTCHours());
+            var minuto = pad2(data.getUTCMinutes());
+            return dia + "/" + mes + "/" + ano + " " + hora + ":" + minuto;
+        }
+
+        function hojeISO() {
+            var hoje = new Date();
+            var ano = hoje.getFullYear();
+            var mes = pad2(hoje.getMonth() + 1);
+            var dia = pad2(hoje.getDate());
+            return ano + "-" + mes + "-" + dia;
+        }
+
+        function mostrarErro(mensagem) {
+            var banner = document.getElementById("bannerError");
+            banner.textContent = mensagem;
+            banner.classList.add("visivel");
+        }
+
+        function limparErro() {
+            var banner = document.getElementById("bannerError");
+            banner.textContent = "";
+            banner.classList.remove("visivel");
+        }
+
+        function extrairMensagemErro(res) {
+            return res.json()
+                .then(function (corpo) {
+                    if (corpo && corpo.mensagem) {
+                        return corpo.mensagem;
+                    }
+                    return "Não foi possível completar a operação (erro " + res.status + ").";
+                })
+                .catch(function () {
+                    return "Não foi possível completar a operação (erro " + res.status + ").";
+                });
+        }
+
+        function setErroCampo(inputId, erroId, mensagem) {
+            document.getElementById(erroId).textContent = mensagem;
+            var input = document.getElementById(inputId);
+            if (input) {
+                input.classList.add("invalido");
+            }
+        }
+
+        function limparErroCampo(inputId, erroId) {
+            document.getElementById(erroId).textContent = "";
+            var input = document.getElementById(inputId);
+            if (input) {
+                input.classList.remove("invalido");
+            }
+        }
+
+        function limparErrosFormulario() {
+            limparErroCampo("nome", "err-nome");
+            limparErroCampo("nivel", "err-nivel");
+            limparErroCampo("dataCaptura", "err-data");
+            limparErroCampo("tipo", "err-tipo");
+            document.getElementById("err-ataques").textContent = "";
+            document.getElementById("err-shiny").textContent = "";
+        }
+
+        function validarFormulario() {
+            limparErrosFormulario();
+            var valido = true;
+
+            var nome = document.getElementById("nome").value.trim();
+            if (nome.length < 2 || nome.length > 20) {
+                setErroCampo("nome", "err-nome", "O nome deve ter entre 2 e 20 caracteres.");
+                valido = false;
+            }
+
+            var nivelValor = document.getElementById("nivel").value;
+            var nivel = parseInt(nivelValor, 10);
+            if (nivelValor === "" || isNaN(nivel) || nivel < 1 || nivel > 100) {
+                setErroCampo("nivel", "err-nivel", "O nível deve estar entre 1 e 100.");
+                valido = false;
+            }
+
+            var dataCaptura = document.getElementById("dataCaptura").value;
+            if (!dataCaptura) {
+                setErroCampo("dataCaptura", "err-data", "Informe a data de captura.");
+                valido = false;
+            } else if (dataCaptura > hojeISO()) {
+                setErroCampo("dataCaptura", "err-data", "A data de captura não pode ser no futuro.");
+                valido = false;
+            }
+
+            var tipoId = document.getElementById("tipo").value;
+            if (!tipoId) {
+                setErroCampo("tipo", "err-tipo", "Selecione um tipo.");
+                valido = false;
+            }
+
+            var checkboxesMarcados = document.querySelectorAll("#ataquesGrid input:checked");
+            if (checkboxesMarcados.length < 1 || checkboxesMarcados.length > 4) {
+                document.getElementById("err-ataques").textContent = "Selecione de 1 a 4 ataques.";
+                valido = false;
+            }
+
+            var shinySelecionado = document.querySelector("input[name='shiny']:checked");
+            if (!shinySelecionado) {
+                document.getElementById("err-shiny").textContent = "Selecione se o Pokémon é shiny.";
+                valido = false;
+            }
+
+            return valido;
+        }
+
+        document.getElementById("editarTimeBtn").addEventListener("click", function () {
+            var editBox = document.getElementById("timeEditBox");
+            var currentName = document.getElementById("timeNomeTexto").textContent;
+
+            document.getElementById("timeNomeInput").value = currentName;
+
+            editBox.style.display = "block";
+        });
+
+        document.getElementById("cancelarTimeBtn").addEventListener("click", function () {
+            document.getElementById("timeEditBox").style.display = "none";
+            document.getElementById("err-timeNome").textContent = "";
+        });
+
+        function carregarTipos() {
+            fetch("http://localhost:8080/pokemon/tipos")
+                .then(function (res) {
+                    if (!res.ok) {
+                        return extrairMensagemErro(res).then(function (mensagem) {
+                            throw new Error(mensagem);
+                        });
+                    }
+                    return res.json();
+                })
+                .then(function (tipos) {
+                    var select = document.getElementById("tipo");
+                    select.innerHTML = "";
+
+                    var optionPadrao = document.createElement("option");
+                    optionPadrao.value = "";
+                    optionPadrao.disabled = true;
+                    optionPadrao.selected = true;
+                    optionPadrao.textContent = "Selecione um tipo";
+                    select.appendChild(optionPadrao);
+
+                    for (var i = 0; i < tipos.length; i++) {
+                        var option = document.createElement("option");
+                        option.value = tipos[i].id;
+                        option.textContent = tipos[i].nome;
+                        select.appendChild(option);
+                    }
+                })
+                .catch(function (err) {
+                    console.error("Erro ao carregar tipos:", err);
+                    mostrarErro(err.message);
+                });
+        }
+
+        function carregarAtaques() {
+            fetch("http://localhost:8080/pokemon/ataques")
+                .then(function (res) {
+                    if (!res.ok) {
+                        return extrairMensagemErro(res).then(function (mensagem) {
+                            throw new Error(mensagem);
+                        });
+                    }
+                    return res.json();
+                })
+                .then(function (ataques) {
+                    var grid = document.getElementById("ataquesGrid");
+                    grid.innerHTML = "";
+                    for (var i = 0; i < ataques.length; i++) {
+                        var label = document.createElement("label");
+                        var input = document.createElement("input");
+                        input.type = "checkbox";
+                        input.value = ataques[i].id;
+                        label.appendChild(input);
+                        label.append(" " + ataques[i].nome);
+                        grid.appendChild(label);
+                    }
+                })
+                .catch(function (err) {
+                    console.error("Erro ao carregar ataques:", err);
+                    mostrarErro(err.message);
+                });
+        }
+
+        function carregarTime() {
+            fetch("http://localhost:8080/pokemon/pokemons")
+                .then(function (res) {
+                    if (!res.ok) {
+                        return extrairMensagemErro(res).then(function (mensagem) {
+                            throw new Error(mensagem);
+                        });
+                    }
+                    return res.json();
+                })
+                .then(function (pokemons) {
+                    var grid = document.getElementById("teamGrid");
+                    var count = document.getElementById("teamCount");
+                    var empty = document.getElementById("teamEmpty");
+                    var loading = document.getElementById("teamLoading");
+
+                    loading.style.display = "none";
+                    grid.innerHTML = "";
+
+                    if (pokemons.length === 0) {
+                        empty.style.display = "block";
+                        count.textContent = "0";
+                    } else {
+                        empty.style.display = "none";
+                        count.textContent = pokemons.length;
+                        for (var i = 0; i < pokemons.length; i++) {
+                            var p = pokemons[i];
+                            var card = document.createElement("div");
+                            card.classList.add("cartao-time");
+                            card.innerHTML =
+                                "<h3>" + p.nome + "</h3>" +
+                                "<p>Nível " + p.nivel + "</p>" +
+                                "<p>Capturado em " + formatarData(p.dataCaptura) + "</p>" +
+                                "<p>" + (p.shiny ? "Shiny" : "Normal") + "</p>" +
+                                "<button class='botao-liberar' onclick='deletarPokemon(" + p.id + ")'>Liberar</button>";
+                            grid.appendChild(card);
+                        }
+                    }
+                })
+                .catch(function (err) {
+                    console.error("Erro ao carregar time:", err);
+                    mostrarErro(err.message);
+                });
+        }
+
+        document.getElementById("pokemonForm").addEventListener("submit", function (e) {
+            e.preventDefault();
+
+            limparErro();
+
+            if (!validarFormulario()) {
+                return;
+            }
+
+            var nome = document.getElementById("nome").value.trim();
+            var nivel = parseInt(document.getElementById("nivel").value, 10);
+            var dataCaptura = document.getElementById("dataCaptura").value;
+            var tipoId = parseInt(document.getElementById("tipo").value, 10);
+            var shiny = document.querySelector("input[name='shiny']:checked").value === "sim";
+
+            var checkboxes = document.querySelectorAll("#ataquesGrid input:checked");
+            var queryAtaques = "";
+            for (var i = 0; i < checkboxes.length; i++) {
+                if (i > 0) {
+                    queryAtaques += "&";
+                }
+                queryAtaques += "ataqueIds=" + checkboxes[i].value;
+            }
+
+            fetch("http://localhost:8080/pokemon/pokemons/criar?" + queryAtaques, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    nome: nome,
+                    nivel: nivel,
+                    dataCaptura: dataCaptura,
+                    tipo_id: tipoId,
+                    shiny: shiny
+                })
+            })
+                .then(function (res) {
+                    if (!res.ok) {
+                        return extrairMensagemErro(res).then(function (mensagem) {
+                            throw new Error(mensagem);
+                        });
+                    }
+                    return res.json();
+                })
+                .then(function () {
+                    document.getElementById("pokemonForm").reset();
+                    limparErrosFormulario();
+                    carregarTime();
+                })
+                .catch(function (err) {
+                    mostrarErro(err.message);
+                });
+        });
+
+        function deletarPokemon(id) {
+            fetch("http://localhost:8080/pokemon/pokemons/" + id, { method: "DELETE" })
+                .then(function (res) {
+                    if (res.status === 204) {
+                        carregarTime();
+                        return;
+                    }
+                    if (!res.ok) {
+                        return extrairMensagemErro(res).then(function (mensagem) {
+                            throw new Error(mensagem);
+                        });
+                    }
+                })
+                .catch(function (err) {
+                    console.error("Erro ao deletar:", err);
+                    mostrarErro(err.message);
+                });
+        }
+
+        document.getElementById("salvarTimeBtn").addEventListener("click", function () {
+            var novoNome = document.getElementById("timeNomeInput").value.trim();
+
+            document.getElementById("err-timeNome").textContent = "";
+
+            if (novoNome.length < 2 || novoNome.length > 50) {
+                document.getElementById("err-timeNome").textContent = "O nome do time deve ter entre 2 e 50 caracteres.";
+                return;
+            }
+
+            fetch("http://localhost:8080/pokemon/time/atualizarNome", {
+                method: "PUT",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ nome: novoNome })
+            })
+                .then(function (res) {
+                    if (!res.ok) {
+                        return extrairMensagemErro(res).then(function (mensagem) {
+                            throw new Error(mensagem);
+                        });
+                    }
+                    return res.json();
+                })
+                .then(function (time) {
+                    document.getElementById("timeNomeTexto").textContent = time.nome;
+                    document.getElementById("timeEditBox").style.display = "none";
+                })
+                .catch(function (err) {
+                    document.getElementById("err-timeNome").textContent = err.message;
+                });
+        });
+
+        carregarTipos();
+        carregarAtaques();
+        carregarTime();
+
+    </script>
+</body>
+
+</html>

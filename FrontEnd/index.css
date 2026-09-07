@@ -1,0 +1,416 @@
+* {
+  box-sizing: border-box;
+}
+
+html, body {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: 'Nunito', Arial, sans-serif;
+  color: #eaf6f8;
+  background: #0a0e12;
+}
+
+.pokedex {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  width: 100%;
+  background: #0a0e12;
+}
+
+.pokedex-topo {
+  background: #12181f;
+  color: #00e5ff;
+  padding: 24px 20px;
+  text-align: center;
+  border-bottom: 2px solid #00e5ff;
+}
+
+.pokedex-titulo {
+  font-size: 28px;
+  margin: 0 0 6px 0;
+  text-shadow: 0 0 12px rgba(0, 229, 255, 0.1);
+}
+
+.pokedex-subtitulo {
+  font-size: 14px;
+  margin: 0;
+  color: #8ba3ab;
+}
+
+.aviso-erro {
+  display: none;
+  background: rgba(255, 77, 109, 0.1);
+  border: 1px solid #ff4d6d;
+  color: #ff4d6d;
+  padding: 10px 12px;
+  font-size: 13px;
+  font-weight: bold;
+  margin: 16px 24px 0 24px;
+}
+
+.aviso-erro.visivel {
+  display: block;
+}
+
+.pokedex-conteudo {
+  flex: 1;
+  width: 100%;
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 24px;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px;
+  align-items: start;
+}
+
+.painel {
+  border: 1px solid #223038;
+  background: #12181f;
+  padding: 20px;
+}
+
+.painel-titulo {
+  margin: 0;
+  font-size: 18px;
+  color: #00e5ff;
+}
+
+.time-cabecalho {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.botao-editar-nome {
+  background: transparent;
+  border: 1px solid #00e5ff;
+  color: #00e5ff;
+  font-size: 12px;
+  font-weight: bold;
+  padding: 6px 12px;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+
+.botao-editar-nome:hover {
+  background: #00e5ff;
+  color: #0a0e12;
+}
+
+.time-editar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 18px;
+  flex-wrap: wrap;
+}
+
+.time-editar input[type="text"] {
+  flex: 1;
+  min-width: 140px;
+  padding: 8px 10px;
+  font-size: 14px;
+  font-family: inherit;
+  border: 1px solid #223038;
+  background: #0a0e12;
+  color: #eaf6f8;
+}
+
+.botao-pequeno {
+  padding: 8px 14px;
+  border: none;
+  border-radius: 4px;
+  font-size: 13px;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+.botao-primario-pequeno {
+  background: #00e5ff;
+  color: #0a0e12;
+}
+
+.botao-primario-pequeno:hover {
+  background: #00b8cc;
+}
+
+.botao-secundario-pequeno {
+  background: transparent;
+  border: 1px solid #223038;
+  color: #eaf6f8;
+}
+
+.botao-secundario-pequeno:hover {
+  border-color: #8ba3ab;
+}
+
+.time-editar .erro {
+  width: 100%;
+  margin: 0;
+}
+
+.texto-carregando {
+  text-align: center;
+  color: #8ba3ab;
+  padding: 20px 0;
+}
+
+.campo {
+  margin-bottom: 18px;
+}
+
+.campo-linha {
+  display: flex;
+  gap: 16px;
+}
+
+.campo-linha .campo {
+  flex: 1;
+}
+
+label {
+  display: block;
+  font-weight: bold;
+  margin-bottom: 6px;
+  color: #eaf6f8;
+}
+
+label small {
+  font-weight: normal;
+  color: #8ba3ab;
+}
+
+input[type="text"],
+input[type="number"],
+input[type="date"],
+select {
+  width: 100%;
+  padding: 10px;
+  font-size: 14px;
+  font-family: inherit;
+  border: 1px solid #223038;
+  background: #0a0e12;
+  color: #eaf6f8;
+}
+
+input[type="text"]:focus,
+input[type="number"]:focus,
+input[type="date"]:focus,
+select:focus {
+  outline: none;
+  border-color: #00e5ff;
+  box-shadow: 0 0 0 2px rgba(0, 229, 255, 0.1);
+}
+
+input.invalido,
+select.invalido {
+  border-color: #ff4d6d;
+}
+
+.erro {
+  display: block;
+  color: #ff4d6d;
+  font-size: 12px;
+  min-height: 16px;
+  margin-top: 4px;
+}
+
+.grade-caixas {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.grade-caixas label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  border: 1px solid #223038;
+  padding: 8px 12px;
+  width: calc(50% - 5px);
+  cursor: pointer;
+  font-weight: normal;
+  margin-bottom: 0;
+}
+
+.opcao-caixa {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  border: 1px solid #223038;
+  padding: 8px 12px;
+  width: calc(50% - 5px);
+  cursor: pointer;
+}
+
+.opcao-caixa.marcada {
+  border-color: #00e5ff;
+  background: rgba(0, 229, 255, 0.1);
+}
+
+.opcao-caixa.desabilitada {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.linha-opcoes {
+  display: flex;
+  gap: 12px;
+}
+
+.opcao-radio {
+  flex: 1;
+  text-align: center;
+  border: 1px solid #223038;
+  padding: 12px;
+  cursor: pointer;
+}
+
+.opcao-radio.marcada {
+  border-color: #00e5ff;
+  background: rgba(0, 229, 255, 0.1);
+}
+
+.botao-primario {
+  width: 100%;
+  padding: 14px;
+  border: none;
+  font-size: 15px;
+  font-weight: bold;
+  cursor: pointer;
+  margin-top: 8px;
+  background: #00e5ff;
+  color: #0a0e12;
+}
+
+.botao-primario:hover {
+  background: #00b8cc;
+}
+
+.estado-vazio {
+  text-align: center;
+  padding: 40px 10px;
+  color: #8ba3ab;
+}
+
+.estado-vazio p {
+  margin: 0;
+  font-weight: bold;
+}
+
+.time-contagem {
+  display: inline-block;
+  background: #00e5ff;
+  color: #0a0e12;
+  font-size: 12px;
+  padding: 1px 7px;
+  border-radius: 10px;
+  margin-left: 6px;
+}
+
+.grade-time {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.cartao-poke {
+  border: 1px solid #223038;
+  border-left: 6px solid var(--type-color, #00e5ff);
+  background: #0a0e12;
+  padding: 16px;
+}
+
+.cartao-poke-cabecalho {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.poke-nome {
+  font-size: 17px;
+  font-weight: bold;
+  margin: 0;
+  color: #eaf6f8;
+}
+
+.poke-brilhante {
+  color: #00e5ff;
+  font-size: 12px;
+  font-weight: bold;
+}
+
+.poke-emblemas {
+  margin: 10px 0;
+}
+
+.emblema {
+  display: inline-block;
+  background: var(--type-color, #00e5ff);
+  color: #0a0e12;
+  font-size: 12px;
+  font-weight: bold;
+  padding: 3px 10px;
+  margin-right: 6px;
+}
+
+.emblema-contorno {
+  background: transparent;
+  border: 1px solid #223038;
+  color: #8ba3ab;
+}
+
+.poke-info {
+  color: #8ba3ab;
+  font-size: 13px;
+  margin: 6px 0;
+}
+
+.poke-ataques {
+  font-size: 13px;
+  margin: 0 0 12px 0;
+  color: #eaf6f8;
+}
+
+.cartao-time {
+  border: 1px solid #223038;
+  background: #0a0e12;
+  padding: 14px;
+  color: #eaf6f8;
+}
+
+.cartao-time h3 {
+  color: #00e5ff;
+  margin: 0 0 6px 0;
+}
+
+.cartao-time p {
+  margin: 4px 0;
+  color: #8ba3ab;
+}
+
+.botao-liberar {
+  background: transparent;
+  border: 1px solid #ff4d6d;
+  color: #ff4d6d;
+  padding: 8px 14px;
+  border-radius: 4px;
+  font-size: 13px;
+  font-weight: bold;
+  cursor: pointer;
+  margin-top: 10px;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+
+.botao-liberar:hover {
+  background: #ff4d6d;
+  color: #12181f;
+}
