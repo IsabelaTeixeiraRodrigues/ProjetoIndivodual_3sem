@@ -15,7 +15,7 @@ O usuário monta seu próprio Pokémon (nome, nível, data de captura, tipo, ata
 ## Tecnologias
 
 **Front-end**
-- HTML5, CSS3 e JavaScript puro (Vanilla) - sem frameworks ou bibliotecas
+- HTML5, CSS3 e JavaScript puro (Vanilla)
 - `fetch()` para consumo da API
 
 **Back-end**
@@ -114,8 +114,6 @@ CREATE TABLE pokemon_ataque (
     FOREIGN KEY (ataque_id) REFERENCES ataque(id)
 );
 ```
-
-> ️ Este script foi inferido a partir do código (`PokemonController` e classes de modelo). Substitua pelo `schema.sql`/`data.sql` reais do projeto, se já existirem.
 
 ## Documentação da API
 
@@ -245,7 +243,7 @@ Atualiza o nome do time (fixo em `id = 1`).
 | Shiny | obrigatório (sim/não) | - |
 | Nome do time | 2–50 caracteres | 2–50 caracteres |
 
-A validação do front-end existe para dar retorno rápido ao usuário, mas o back-end nunca confia apenas nela - toda requisição é revalidada na API, mesmo vinda de ferramentas como Postman/Insomnia/curl.
+A validação do front-end existe para dar retorno rápido ao usuário, mas o back-end nunca confia apenas nela, toda requisição é revalidada na API, mesmo vinda de ferramentas como Postman/Insomnia/curl.
 
 ## Autora
 
