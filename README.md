@@ -45,8 +45,6 @@ ProjetoIndivodual_3sem/
 └── README.md
 ```
 
-> Ajuste esta árvore caso a organização real de pastas do seu repositório seja diferente.
-
 ## Como executar
 
 ### Back-end (Spring Boot)
